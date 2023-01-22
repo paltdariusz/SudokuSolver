@@ -1,6 +1,7 @@
 #include <iostream>
 #include <array>
 #include <omp.h>
+#include <chrono>
 
 class Sudoku {
 private:
