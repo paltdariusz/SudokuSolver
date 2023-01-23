@@ -1,5 +1,5 @@
 #include <iostream>
-#include <mpi.h>
+//#include <mpi.h>
 #include <vector>
 #include <chrono>
 #include <array>
@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <filesystem>
 
 class Sudoku {
 public:
@@ -54,8 +53,10 @@ public:
 
     bool solve() {
         int rank, num_procs;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+        rank = 0;
+        num_procs = 1;
+//        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//        MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
         // Start the solving process
         bool solved = solve(rank, num_procs, 0, 0);
 //        MPI_Finalize();
@@ -64,7 +65,7 @@ public:
 
     void printSolution() {
         int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         if (rank == 0) {
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 9; j++) {
@@ -171,7 +172,7 @@ private:
 
 int main(int argc, char **argv) {
 //     Initialize MPI
-    MPI_Init(&argc, &argv);
+//    MPI_Init(&argc, &argv);
 
     std::string file_name = "data.csv";
     std::ifstream file(file_name);
@@ -231,8 +232,10 @@ int main(int argc, char **argv) {
         // Record the end time
         auto end_time = std::chrono::high_resolution_clock::now();
         int rank, num_proc;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
+        rank = 0;
+        num_proc = 1;
+//        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//        MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
         if (rank == 0) {
             // Calculate and print the time taken to solve the puzzle
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
@@ -247,6 +250,6 @@ int main(int argc, char **argv) {
     if (output.is_open()) {
         output.close();
     }
-    MPI_Finalize();
+//    MPI_Finalize();
     return 0;
 }
