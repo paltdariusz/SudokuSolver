@@ -19,10 +19,6 @@ public:
                 grid[i][j] = 0;
             }
         }
-
-        // Initialize MPI
-//        int provided;
-//        MPI_Init_thread(NULL, NULL, MPI_THREAD_FUNNELED, &provided);
     }
 
     void setValue(std::string values, int mode) {
@@ -33,8 +29,8 @@ public:
                 for (int i = 0; i < values.length(); i++) {
                     row = i / 9;
                     col = i % 9;
-                    grid[row][col] = (int) values[i];
-                    startingGrid[row][col] = (int) values[i];
+                    grid[row][col] = (int) values[i] - 48;
+                    startingGrid[row][col] = (int) values[i] - 48;
                 }
                 break;
             case 1:
@@ -42,7 +38,7 @@ public:
                 for (int i = 0; i < values.length(); i++) {
                     row = i / 9;
                     col = i % 9;
-                    solvedGrid[row][col] = (int) values[i];
+                    solvedGrid[row][col] = (int) values[i] - 48;
                 }
                 break;
         }
@@ -55,17 +51,16 @@ public:
         int rank, num_procs;
         rank = 0;
         num_procs = 1;
-//        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//        MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
         // Start the solving process
         bool solved = solve(rank, num_procs, 0, 0);
-//        MPI_Finalize();
         return solved;
     }
 
     void printSolution() {
         int rank;
-//        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         if (rank == 0) {
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 9; j++) {
@@ -92,9 +87,9 @@ public:
         }
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
-                sudokuStrings[0] += (char) startingGrid[i][j];
-                sudokuStrings[1] += (char) grid[i][j];
-                sudokuStrings[2] += (char) solvedGrid[i][j];
+                sudokuStrings[0] += (char) (startingGrid[i][j] + 48);
+                sudokuStrings[1] += (char) (grid[i][j] + 48);
+                sudokuStrings[2] += (char) (solvedGrid[i][j] + 48);
             }
         }
         return sudokuStrings;
@@ -171,8 +166,8 @@ private:
 };
 
 int main(int argc, char **argv) {
-//     Initialize MPI
-//    MPI_Init(&argc, &argv);
+    // Initialize MPI
+    MPI_Init(&argc, &argv);
 
     std::string file_name = "data.csv";
     std::ifstream file(file_name);
@@ -197,16 +192,7 @@ int main(int argc, char **argv) {
     file.close();
     data.erase(data.begin());
 
-//     Print the contents of the CSV file
-//    for (auto const& row : data) {
-//        for (auto const& cell : row) {
-//            std::cout << cell << " ";
-//        }
-//        std::cout << std::endl;
-//    }
-
-    // Create a Sudoku object
-
+    // Create a Sudoku objects
     const int SUDOKU_NUM = 1000000;
 
     std::array<Sudoku, SUDOKU_NUM> sudokus;
@@ -218,7 +204,7 @@ int main(int argc, char **argv) {
 
     std::ofstream output("results.csv", std::ios::out | std::ios::app);
     if (output.is_open()) {
-        output << "Sudoku,Solutions,Solved,OwnSolution,Time,NumProc\n";
+        output << "Sudoku,Solutions,Solved,OwnSolution,isSolutionSame,Time,NumProc\n";
     }
 
     // Set the initial state of the puzzle
@@ -232,10 +218,8 @@ int main(int argc, char **argv) {
         // Record the end time
         auto end_time = std::chrono::high_resolution_clock::now();
         int rank, num_proc;
-        rank = 0;
-        num_proc = 1;
-//        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//        MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
         if (rank == 0) {
             // Calculate and print the time taken to solve the puzzle
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
@@ -243,13 +227,13 @@ int main(int argc, char **argv) {
             std::vector<std::string> sudokuStrings = sudokus[i].sudokuToString();
             if (output.is_open()) {
                 output << sudokuStrings[0] << "," << sudokuStrings[2] <<"," << solved <<"," <<sudokuStrings[1] << ",";
-                output << sudokus[i].solveTime << "," << num_proc << "\n";
+                output << sudokus[i].checkSolution() << " " << sudokus[i].solveTime << "," << num_proc << "\n";
             }
         }
     }
     if (output.is_open()) {
         output.close();
     }
-//    MPI_Finalize();
+    MPI_Finalize();
     return 0;
 }
