@@ -1,5 +1,5 @@
 #include <iostream>
-//#include <mpi.h>
+#include <mpi.h>
 #include <vector>
 #include <chrono>
 #include <array>
